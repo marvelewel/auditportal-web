@@ -1,7 +1,5 @@
 <?php
 
-namespace App\Filament\Resources\Auth; // Sesuaikan namespace jika folder berbeda, misal App\Filament\Pages\Auth
-
 namespace App\Filament\Pages\Auth;
 
 use Filament\Pages\Auth\Login;
@@ -42,7 +40,7 @@ class CustomLogin extends Login
     protected function getEmailFormComponent(): Component
     {
         return TextInput::make('email')
-            ->label('Corporate Email') // Label lebih profesional
+            ->label('Email') // Label lebih profesional
             ->email()
             ->required()
             ->autocomplete()

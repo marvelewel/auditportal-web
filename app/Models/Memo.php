@@ -2,23 +2,24 @@
 
 namespace App\Models;
 
+use App\Traits\HasActivityLog;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Memo extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, HasActivityLog;
 
     protected $fillable = [
-        'id_unik', 
-        'no_dokumen', 
-        'perihal_dokumen', 
+        'id_unik',
+        'no_dokumen',
+        'perihal_dokumen',
         'jenis_dokumen',
-        'tanggal_terbit', 
-        'dept_author', 
-        'ruang_lingkup', 
-        'status', 
+        'tanggal_terbit',
+        'dept_author',
+        'ruang_lingkup',
+        'status',
         'file_dokumen',
     ];
 
@@ -36,15 +37,15 @@ class Memo extends Model
         static::creating(function ($memo) {
             // Hanya generate jika id_unik belum diisi
             if (empty($memo->id_unik)) {
-                
+
                 // 1. Tentukan Prefix
                 $prefixMap = [
-                    'MEMO' => 'MEM', 
-                    'PNP' => 'PNP', 
+                    'MEMO' => 'MEM',
+                    'PNP' => 'PNP',
                     'MEKANISME' => 'MEK',
-                    'LNI' => 'LNI', 
+                    'LNI' => 'LNI',
                     'BERITA_ACARA' => 'BA',
-                    'GUIDANCE' => 'GUI', 
+                    'GUIDANCE' => 'GUI',
                     'OTHERS' => 'OTH',
                 ];
                 $prefix = $prefixMap[$memo->jenis_dokumen] ?? 'DOC';
@@ -61,7 +62,7 @@ class Memo extends Model
                     // Format ID di database: PREFIX-001
                     // Kita pecah string berdasarkan strip "-"
                     $parts = explode('-', $lastRecord->id_unik);
-                    
+
                     // Ambil angka di bagian belakang, lalu tambah 1
                     if (isset($parts[1]) && is_numeric($parts[1])) {
                         $nextNumber = intval($parts[1]) + 1;

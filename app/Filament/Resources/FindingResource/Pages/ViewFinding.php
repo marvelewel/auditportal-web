@@ -5,6 +5,7 @@ namespace App\Filament\Resources\FindingResource\Pages;
 use App\Filament\Resources\FindingResource;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Actions;
+use Illuminate\Support\Facades\Auth;
 
 class ViewFinding extends ViewRecord
 {
@@ -13,8 +14,13 @@ class ViewFinding extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
-            Actions\DeleteAction::make(),
+            // Edit: Admin & Auditor
+            Actions\EditAction::make()
+                ->visible(fn() => Auth::user()->isAdmin() || Auth::user()->isAuditor()),
+
+            // Delete: Admin Only
+            Actions\DeleteAction::make()
+                ->visible(fn() => Auth::user()->isAdmin()),
         ];
     }
 }

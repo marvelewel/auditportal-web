@@ -25,7 +25,7 @@ class FindingResource extends Resource
     protected static ?string $modelLabel = 'Temuan Audit'; // Label Tombol (New Temuan Audit)
     protected static ?string $pluralModelLabel = 'Daftar Temuan';
     protected static ?string $recordTitleAttribute = 'deskripsi_temuan';
-    
+
     protected static ?string $navigationGroup = 'Audit Management';
     protected static ?int $navigationSort = 2;
 
@@ -54,7 +54,7 @@ class FindingResource extends Resource
                         ->required()
                         ->columnSpanFull(),
                 ])
-                ->visible(fn ($livewire) => ! $livewire instanceof RelationManager),
+                ->visible(fn($livewire) => !$livewire instanceof RelationManager),
 
             // BAGIAN 2: RISIKO & DETAIL
             Forms\Components\Section::make('Detail & Risiko')
@@ -153,20 +153,20 @@ class FindingResource extends Resource
                         Infolists\Components\TextEntry::make('status_finding')
                             ->label('STATUS')
                             ->badge()
-                            ->color(fn (string $state) => $state === 'OPEN' ? 'warning' : 'success'),
+                            ->color(fn(string $state) => $state === 'OPEN' ? 'warning' : 'success'),
 
                         Infolists\Components\TextEntry::make('due_date')
                             ->label('DUE DATE')
                             ->date('d M Y')
                             ->icon('heroicon-m-calendar')
-                            ->color(fn ($record) => $record->status_finding === 'OPEN' && now()->gt($record->due_date) ? 'danger' : 'gray'),
+                            ->color(fn($record) => $record->status_finding === 'OPEN' && now()->gt($record->due_date) ? 'danger' : 'gray'),
                     ]),
-                    
+
                     Infolists\Components\Grid::make(4)->schema([
                         Infolists\Components\TextEntry::make('kategori')
                             ->label('RISIKO')
                             ->badge()
-                            ->color(fn (string $state) => match ($state) {
+                            ->color(fn(string $state) => match ($state) {
                                 'MAJOR' => 'danger',
                                 'MINOR' => 'warning',
                                 'OBSERVASI' => 'info',
@@ -177,7 +177,7 @@ class FindingResource extends Resource
                             ->label('POTENSI KERUGIAN')
                             ->money('IDR')
                             ->color('danger'),
-                        
+
                         Infolists\Components\TextEntry::make('pic_auditee')
                             ->label('PIC AUDITEE')
                             ->icon('heroicon-m-user'),
@@ -190,7 +190,7 @@ class FindingResource extends Resource
                         ->label('Deskripsi Temuan')
                         ->markdown()
                         ->prose(),
-                    
+
                     Infolists\Components\Grid::make(2)->schema([
                         Infolists\Components\TextEntry::make('akar_penyebab')
                             ->label('Akar Penyebab')
@@ -212,6 +212,7 @@ class FindingResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->with(['rko']))
             ->columns([
                 Tables\Columns\TextColumn::make('rko.nama_obyek_pemeriksaan')
                     ->label('Obyek Audit')
@@ -219,12 +220,12 @@ class FindingResource extends Resource
                     ->sortable()
                     ->weight('medium')
                     ->limit(25)
-                    ->tooltip(fn ($record) => $record->rko?->nama_obyek_pemeriksaan),
+                    ->tooltip(fn($record) => $record->rko?->nama_obyek_pemeriksaan),
 
                 Tables\Columns\TextColumn::make('kategori')
                     ->label('Risiko')
                     ->badge()
-                    ->color(fn (string $state) => match ($state) {
+                    ->color(fn(string $state) => match ($state) {
                         'MAJOR' => 'danger',
                         'MINOR' => 'warning',
                         'OBSERVASI' => 'info',
@@ -246,16 +247,17 @@ class FindingResource extends Resource
                     ->label('Due Date')
                     ->date('d M Y')
                     ->sortable()
-                    ->color(fn ($record) => 
-                        $record->status_finding === 'OPEN' && now()->gt($record->due_date) 
-                        ? 'danger' 
+                    ->color(
+                        fn($record) =>
+                        $record->status_finding === 'OPEN' && now()->gt($record->due_date)
+                        ? 'danger'
                         : 'gray'
                     ),
 
                 Tables\Columns\TextColumn::make('status_finding')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state) => $state === 'OPEN' ? 'warning' : 'success'),
+                    ->color(fn(string $state) => $state === 'OPEN' ? 'warning' : 'success'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status_finding')
@@ -264,7 +266,7 @@ class FindingResource extends Resource
                         'OPEN' => 'Open',
                         'CLOSED' => 'Closed',
                     ]),
-                
+
                 Tables\Filters\SelectFilter::make('kategori')
                     ->label('Risiko')
                     ->options([
@@ -275,20 +277,20 @@ class FindingResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
-                    
+
                     Tables\Actions\EditAction::make()
-                        ->visible(fn () => Auth::user()->isAdmin() || Auth::user()->isAuditor()),
-                    
+                        ->visible(fn() => Auth::user()->isAdmin() || Auth::user()->isAuditor()),
+
                     Tables\Actions\DeleteAction::make()
-                        ->visible(fn () => Auth::user()->isAdmin()),
+                        ->visible(fn() => Auth::user()->isAdmin()),
                 ])
-                ->icon('heroicon-m-ellipsis-vertical')
-                ->tooltip('Aksi'),
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->tooltip('Aksi'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => Auth::user()->isAdmin()),
+                        ->visible(fn() => Auth::user()->isAdmin()),
                 ]),
             ])
             ->emptyStateHeading('Tidak ada temuan')
@@ -305,10 +307,10 @@ class FindingResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListFindings::route('/'),
+            'index' => Pages\ListFindings::route('/'),
             'create' => Pages\CreateFinding::route('/create'),
-            'view'   => Pages\ViewFinding::route('/{record}'),
-            'edit'   => Pages\EditFinding::route('/{record}/edit'),
+            'view' => Pages\ViewFinding::route('/{record}'),
+            'edit' => Pages\EditFinding::route('/{record}/edit'),
         ];
     }
 }
