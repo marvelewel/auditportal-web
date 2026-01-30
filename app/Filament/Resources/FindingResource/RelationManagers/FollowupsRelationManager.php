@@ -63,7 +63,7 @@ class FollowupsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->latest('tanggal_fu'))
+            ->modifyQueryUsing(fn(Builder $query) => $query->latest('tanggal_fu'))
             ->columns([
                 Tables\Columns\TextColumn::make('tanggal_fu')
                     ->label('TANGGAL')
@@ -76,27 +76,18 @@ class FollowupsRelationManager extends RelationManager
                     ->badge()
                     ->color('info')
                     // ✅ FIX ERROR: Hapus type hint 'Model' untuk menghindari crash saat null
-                    ->description(fn ($record) => strtoupper($record->creator?->role ?? '-'))
+                    ->description(fn($record) => strtoupper($record->creator?->role ?? '-'))
                     ->width('20%'),
 
                 Tables\Columns\TextColumn::make('keterangan')
                     ->label('KETERANGAN')
                     ->wrap()
                     ->limit(100)
-                    ->tooltip(fn ($record) => $record->keterangan),
+                    ->tooltip(fn($record) => $record->keterangan),
 
-                // ✅ FIX: Gunakan 'evidence_path'
-                Tables\Columns\TextColumn::make('evidence_path')
+                Tables\Columns\ViewColumn::make('evidence_path')
                     ->label('BUKTI')
-                    ->formatStateUsing(fn () => 'Lihat File')
-                    ->icon('heroicon-m-document-text')
-                    ->iconColor('primary')
-                    ->color('primary')
-                    // ✅ Null Safety: Cek apakah record & evidence_path ada
-                    ->url(fn ($record) => $record?->evidence_path ? Storage::url($record->evidence_path) : null)
-                    ->openUrlInNewTab()
-                    ->badge()
-                    ->visible(fn ($record) => ! empty($record?->evidence_path)),
+                    ->view('filament.tables.columns.file-viewer-button'),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
@@ -104,31 +95,32 @@ class FollowupsRelationManager extends RelationManager
                     ->icon('heroicon-m-plus')
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['created_by'] = auth()->id();
-                        
+
                         // ✅ FIX: Ambil dari 'evidence_path' (bukan evidence_file)
                         // Filament otomatis mengisi $data['evidence_path'] dengan path file
                         if (!empty($data['evidence_path'])) {
                             // Ambil nama file saja untuk kolom evidence_name
-                            $data['evidence_name'] = basename($data['evidence_path']); 
+                            $data['evidence_name'] = basename($data['evidence_path']);
                         }
 
                         return $data;
                     })
-                    ->visible(fn () => auth()->user()->isAdmin() 
-                        || auth()->user()->isAuditor() 
+                    ->visible(
+                        fn() => auth()->user()->isAdmin()
+                        || auth()->user()->isAuditor()
                         || auth()->user()->isAuditee()
                     ),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make()
-                        ->visible(fn ($record) => $record && ($record->created_by === auth()->id() || auth()->user()->isAdmin())),
-                    
+                        ->visible(fn($record) => $record && ($record->created_by === auth()->id() || auth()->user()->isAdmin())),
+
                     Tables\Actions\DeleteAction::make()
-                        ->visible(fn () => auth()->user()->isAdmin()),
+                        ->visible(fn() => auth()->user()->isAdmin()),
                 ])
-                ->icon('heroicon-m-ellipsis-vertical')
-                ->tooltip('Aksi'),
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->tooltip('Aksi'),
             ])
             ->emptyStateHeading('Belum ada tindak lanjut')
             ->emptyStateDescription('Klik tombol "Tambah Follow-Up" untuk melaporkan progres perbaikan.');

@@ -341,6 +341,14 @@ class AdminPanelProvider extends PanelProvider
                 }
             )
 
+            // ============================================================
+            // 5. FILE VIEWER MODAL (GLOBAL)
+            // ============================================================
+            ->renderHook(
+                'panels::body.end',
+                fn() => view('livewire.file-viewer-modal-wrapper')
+            )
+
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([Dashboard::class])

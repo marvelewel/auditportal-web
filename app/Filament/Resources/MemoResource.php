@@ -27,7 +27,7 @@ class MemoResource extends Resource
     protected static ?string $navigationLabel = 'Dokumen Internal';
     protected static ?string $modelLabel = 'Dokumen Internal';
     protected static ?string $pluralModelLabel = 'Arsip Dokumen';
-    
+
     protected static ?string $navigationGroup = 'Audit Management';
     protected static ?int $navigationSort = 3;
 
@@ -43,9 +43,9 @@ class MemoResource extends Resource
                             // ID UNIK (AUTO) - Read-Only saat Edit
                             TextInput::make('id_unik')
                                 ->label('ID System')
-                                ->disabled() 
+                                ->disabled()
                                 ->dehydrated(false)
-                                ->visible(fn ($operation) => $operation === 'edit'), 
+                                ->visible(fn($operation) => $operation === 'edit'),
 
                             TextInput::make('no_dokumen')
                                 ->label('Nomor Dokumen')
@@ -99,7 +99,7 @@ class MemoResource extends Resource
                                 ])
                                 ->searchable()
                                 ->required(),
-                            
+
                             CheckboxList::make('ruang_lingkup')
                                 ->label('Ruang Lingkup (Scope)')
                                 ->options([
@@ -113,7 +113,7 @@ class MemoResource extends Resource
                                         $component->state(explode(', ', $state));
                                     }
                                 })
-                                ->dehydrateStateUsing(fn ($state) => is_array($state) ? implode(', ', $state) : $state),
+                                ->dehydrateStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state),
 
                             Select::make('status')
                                 ->label('Status Dokumen')
@@ -160,7 +160,7 @@ class MemoResource extends Resource
                 TextColumn::make('perihal_dokumen')
                     ->label('Perihal')
                     ->limit(40)
-                    ->tooltip(fn ($record) => $record->perihal_dokumen)
+                    ->tooltip(fn($record) => $record->perihal_dokumen)
                     ->searchable()
                     ->wrap(),
 
@@ -177,13 +177,13 @@ class MemoResource extends Resource
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'EXISTING' => 'success',
                         'EXPIRED' => 'danger',
                         'OBSOLETE' => 'warning',
                         default => 'gray',
                     }),
-                
+
                 // ❌ KOLOM 'file_dokumen' DIHAPUS DARI SINI
                 // Kita pindahkan ke bagian ->actions() di bawah agar jadi tombol
             ])
@@ -195,26 +195,35 @@ class MemoResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Filter Status'),
             ])
+            // ✅ Nonaktifkan link default ke Edit saat klik baris
+            ->recordUrl(null)
+            // ✅ Saat baris diklik, jalankan action 'view_document' untuk buka file viewer
+            ->recordAction('view_document')
             ->actions([
-                // ✅ FITUR BARU: TOMBOL VIEW PDF (Action Button)
-                Tables\Actions\Action::make('view_file')
-                    ->label('Lihat PDF')   // Label pendek/jelas
-                    ->icon('heroicon-m-document-text')
-                    ->color('warning')     // Warna Emas/Kuning
-                    // Membuka file di tab baru
-                    ->url(fn (Memo $record) => $record->file_dokumen ? Storage::url($record->file_dokumen) : null)
-                    ->openUrlInNewTab()
-                    // Hanya muncul jika file ada
-                    ->visible(fn (Memo $record) => !empty($record->file_dokumen))
-                    ->tooltip('Buka file dokumen'),
+                // ✅ Action untuk membuka file viewer (dipanggil saat klik baris)
+                Tables\Actions\Action::make('view_document')
+                    ->label('Lihat Dokumen')
+                    ->icon('heroicon-m-eye')
+                    ->color('primary')
+                    ->action(function (Memo $record, $livewire) {
+                        if (!empty($record->file_dokumen)) {
+                            $livewire->dispatch(
+                                'openFileViewer',
+                                path: $record->file_dokumen,
+                                disk: 'public',
+                                displayName: $record->perihal_dokumen ?? basename($record->file_dokumen)
+                            );
+                        }
+                    })
+                    ->visible(fn(Memo $record) => !empty($record->file_dokumen)), // Tampilkan jika ada file
 
                 // Menu Titik Tiga (Edit & Delete)
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                 ])
-                ->icon('heroicon-m-ellipsis-vertical')
-                ->tooltip('Aksi'),
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->tooltip('Aksi'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
